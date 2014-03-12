@@ -1,4 +1,0 @@
-SpaceGame
-=========
-
-Space Game

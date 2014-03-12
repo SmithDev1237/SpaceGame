@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Space Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <script src="scripts/jquery.js"></script>
+    <style type="text/css">
+      body{
+        padding:0px;
+        margin:0px;
+      }
+      #cnvMain{
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <canvas id="cnvMain" width="1000" height="800"></canvas>
+
+    <script>
+
+      var canvas = document.getElementById('cnvMain');
+      var ctx = canvas.getContext('2d');
+      ctx.canvas.width  = $(window).width();
+      ctx.canvas.height = $(window).height();
+
+      var earth = new Planet("Earth", "Blue", 1, 2, 45,0.01);
+      var mars = new Planet("Mars", "Brown", 1.2, 1.5, 160, 0.05);
+      var merc = new Planet("Mercury", "Grey", .5, .8, 300,0.1);
+
+      var sol = new Star("Sol", "Yellow", 1, 799,400);
+      sol.AddPlanet(earth);
+      sol.AddPlanet(mars);
+      sol.AddPlanet(merc);
+
+      var bigOrange = new Planet("Bob", "Orange", 3, 2, 85,0.01);
+      var small = new Planet("Small", "Grey", .5, 1.2, 300,0.1);
+      var bStar = new Star("Bernards Star", "Red", 2, 300,300);
+      bStar.AddPlanet(bigOrange);
+      bStar.AddPlanet(small);
+
+      var hammerTime = new Planet("Hsam", "Green", 1, 2, 180,0.05);
+      var bGuise = new Star("Beetleguise", "Blue", 1.5, 1200,700);
+      bGuise.AddPlanet(hammerTime);
+      var starList = [];
+      
+      starList.push(bStar);
+      starList.push(sol);
+      starList.push(bGuise);     
+      
+      window.requestAnimationFrame(Kernal);
+
+      function Kernal(){
+        ctx.save();        
+        // paint bg
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, $(window).width(), $(window).height());
+        RenderStars(ctx, starList);
+        
+        window.requestAnimationFrame(Kernal);
+      }
+
+      function RenderStars(context, starsList){        
+
+        for(var i = 0; i < starsList.length; i++){
+
+          context.shadowColor = starsList[i].starType;
+          context.shadowOffsetX = 0;
+          context.shadowOffsetY = 0;
+          context.shadowBlur = 100;
+
+          context.fillStyle = starsList[i].starType;
+          context.beginPath(); 
+          context.arc(starsList[i].posX, starsList[i].posY, starsList[i].starSize * 50, 0, 2 * Math.PI, false);          
+          context.fill();          
+
+          RenderPlanets(context, starsList[i].planets, starsList[i].posX, starsList[i].posY);
+
+          context.font = '12pt Verdana';          
+          context.fillStyle = 'White';
+          context.fillText(starsList[i].starName, starsList[i].posX, starsList[i].posY - ((starsList[i].starSize * 25) +30));
+        }
+      }
+
+      function RenderPlanets(context, planetList, orbitX, orbitY){
+
+        var Sun_Position = {X: orbitX, Y: orbitY};  
+
+        for(var i = 0; i < planetList.length; i++){          
+
+          var Planet_Position = {X: orbitX + (planetList[i].planetDistance * 100), Y: orbitY};
+          
+
+          // Ok, so now we are going to rotate our planet around the sun and draw it again
+
+          context.save();
+          context.translate(Sun_Position.X, Sun_Position.Y);
+          context.rotate(-Math.PI / 180 * planetList[i].planetAngle);
+          context.translate(-Sun_Position.X, -Sun_Position.Y);
+
+          context.fillStyle = planetList[i].planetType;
+          context.beginPath(); 
+          context.arc(Planet_Position.X, Planet_Position.Y, planetList[i].planetSize * 15, 0, 2 * Math.PI, false);          
+          context.fill();
+
+          // context.font = '8pt Verdana';          
+          // context.fillStyle = 'White';
+          // context.fillText(planetList[i].planetName, Planet_Position.X, Planet_Position.Y + 20);
+
+          context.restore();
+
+          planetList[i].planetAngle -= planetList[i].planetVelocity;
+
+        }        
+      }
+
+      function Star(name, type, size, x, y, angle){
+
+        this.starName = name;
+        this.starType = type;
+        this.starSize = size;
+        this.posX = x;
+        this.posY = y;        
+        this.planets = [];
+
+        this.AddPlanet = function(planet){
+
+          this.planets.push(planet);
+        };
+      }
+
+      function Planet(name, type, size, distance, planetAngle, velocity){
+
+        this.planetName = name;
+        this.planetType = type;
+        this.planetSize = size;
+        this.planetDistance = distance;
+        this.planetAngle = planetAngle;
+        this.planetVelocity = velocity
+      }
+
+      /**
+       * Provides requestAnimationFrame in a cross browser way.
+       * @author paulirish / http://paulirish.com/
+       * https://gist.github.com/838785
+       */
+      if ( !window.requestAnimationFrame ) {
+          window.requestAnimationFrame = ( function() {
+
+              return window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame ||
+              window.oRequestAnimationFrame ||
+              window.msRequestAnimationFrame ||
+              function( /* function FrameRequestCallback */ callback, /* DOMElement Element */ element ) {
+
+                  window.setTimeout( callback, 1000 / 60 );
+
+              };
+
+          } )();
+      }
+
+      $(window).resize(function() {
+        ctx.canvas.width  = $(window).width();
+        ctx.canvas.height = $(window).height();
+      });  
+
+    </script>
+    
+  </body>
+</html>
